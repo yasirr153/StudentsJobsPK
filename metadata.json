@@ -1,6 +1,6 @@
 {
   "name": "StudentJobsPK",
-  "description": "A job and opportunities aggregation platform for students, fresh graduates, and remote workers in Pakistan. Features AI-powered job summaries, automated aggregation, and advanced search.",
+  "description": "A job and opportunities aggregation platform with AI-powered career tools for students, fresh graduates, and remote workers in Pakistan. Includes AI cover letter generators, resume improvers, and job description simplifiers.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

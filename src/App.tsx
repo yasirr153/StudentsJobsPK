@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import JobsPage from './pages/JobsPage';
 import JobDetailPage from './pages/JobDetailPage';
 import AdminPanel from './pages/AdminPanel';
+import CareerTools from './pages/CareerTools';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/fresh-graduate-jobs" element={<JobsPage />} />
             <Route path="/job/:id" element={<JobDetailPage />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/tools" element={<CareerTools />} />
             <Route path="/login" element={<div className="pt-32 p-10 text-center">Login Page coming soon!</div>} />
           </Routes>
         </main>

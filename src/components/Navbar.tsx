@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, Search, Bell, User, LayoutDashboard, LogOut, LogIn } from 'lucide-react';
+import { Briefcase, Search, Bell, User, LayoutDashboard, LogOut, LogIn, Zap } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,7 @@ export default function Navbar() {
     { name: 'Jobs', path: '/jobs', icon: Search },
     { name: 'Internships', path: '/internships', icon: Briefcase },
     { name: 'Scholarships', path: '/scholarships', icon: Bell },
+    { name: 'AI Tools', path: '/tools', icon: Zap },
   ];
 
   return (
