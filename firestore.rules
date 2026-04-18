@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isVerified() { return request.auth.token.email_verified == true; }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email', 'alerts_enabled', 'createdAt']) &&
+             data.keys().size() == 4 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.email == request.auth.token.email &&
+             data.alerts_enabled is bool &&
+             data.createdAt == request.time;
+    }
+
+    function isValidJob(data) {
+      return data.keys().hasAll(['title', 'company', 'location', 'job_type', 'description', 'apply_link', 'category', 'createdAt', 'status']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.company is string && data.company.size() <= 100 &&
+             data.location is string && data.location.size() <= 100 &&
+             data.job_type in ['Full-time', 'Part-time', 'Internship', 'Contract'] &&
+             data.description is string && data.description.size() <= 10000 &&
+             data.apply_link is string && data.apply_link.size() <= 500 &&
+             data.category in ['remote', 'internship', 'scholarship', 'fresh-graduate'] &&
+             data.createdAt is timestamp &&
+             data.status in ['draft', 'pending', 'approved', 'expired'];
+    }
+
+    // --- Collections ---
+
+    match /users/{uid} {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid) && isValidUser(incoming());
+      allow update: if isOwner(uid) && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['name', 'alerts_enabled']) &&
+                      incoming().name is string && incoming().name.size() > 0 &&
+                      incoming().alerts_enabled is bool;
+
+      match /savedJobs/{jobId} {
+        allow list: if isOwner(uid);
+        allow get: if isOwner(uid);
+        allow create: if isOwner(uid) && 
+                        exists(/databases/$(database)/documents/jobs/$(jobId)) &&
+                        incoming().keys().hasOnly(['savedAt']) &&
+                        incoming().savedAt == request.time;
+        allow delete: if isOwner(uid);
+      }
+    }
+
+    match /jobs/{jobId} {
+      allow list: if (resource == null || existing().status == 'approved');
+      allow get: if (resource == null || existing().status == 'approved' || isAdmin());
+      
+      allow create: if isAdmin() && isValidJob(incoming()) && incoming().createdAt == request.time;
+      
+      allow update: if isAdmin() && isValidJob(incoming()) && (
+        // Action: Approve
+        (existing().status == 'pending' && incoming().status == 'approved' && incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+        // Action: Full Edit (Admin only, non-terminal state)
+        (existing().status != 'expired' && isAdmin())
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow get: if isSignedIn();
+      // Only existing admins can create other admins (or manual setup via console)
+      allow write: if false; 
+    }
+  }
+}

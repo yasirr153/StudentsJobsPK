@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Information about a student or job seeker",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name of the user" },
+        "email": { "type": "string", "format": "email", "description": "Verified email address" },
+        "alerts_enabled": { "type": "boolean", "description": "Whether the user wants email alerts" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "alerts_enabled", "createdAt"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "A job opportunity or internship listing",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "location": { "type": "string" },
+        "job_type": { "type": "string", "enum": ["Full-time", "Part-time", "Internship", "Contract"] },
+        "description": { "type": "string" },
+        "requirements": { "type": "array", "items": { "type": "string" } },
+        "summary": { "type": "string" },
+        "apply_link": { "type": "string" },
+        "source": { "type": "string" },
+        "slug": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "category": { "type": "string", "enum": ["remote", "internship", "scholarship", "fresh-graduate"] },
+        "logoUrl": { "type": "string" },
+        "salary": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["draft", "pending", "approved", "expired"] }
+      },
+      "required": ["title", "company", "location", "job_type", "description", "apply_link", "category", "createdAt", "status"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "User with administrative permissions",
+      "type": "object",
+      "properties": {
+        "permissions": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["permissions"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/users/{uid}/savedJobs/{jobId}": {
+      "schema": { "type": "object", "properties": { "savedAt": { "type": "string", "format": "date-time" } } },
+      "description": "Subcollection for jobs saved by the user"
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Master job listings collection"
+    },
+    "/admins/{uid}": {
+      "schema": "Admin",
+      "description": "Collection defining admin users"
+    }
+  }
+}
